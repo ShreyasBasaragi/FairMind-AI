@@ -1,0 +1,14 @@
+# Virtual Environments
+venv312/
+venv/
+env/
+
+# Python Cache
+__pycache__/
+*.pyc
+
+# Mac OS junk files
+.DS_Store
+
+# Generated output graphs and reports
+outputs/
