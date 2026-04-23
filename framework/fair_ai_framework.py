@@ -6,7 +6,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from datetime import datetime
 
-# Import from your modules
 from modules.model_trainer import train_baseline, train_random_forest, train_neural_net, evaluate_model
 from modules.fairness_metrics import compute_all_metrics
 from modules.mitigation import train_with_reweighting, train_adversarial_model, train_ai_arbiter
@@ -20,9 +19,7 @@ class FairAIFramework:
         self.models = {}
         self.viz = FairnessVisualizer()
 
-    # ==========================================
-    # 1. BULLETPROOF DATA LOADERS
-    # ==========================================
+    # loading data
     def load_data(self):
         print("[Framework] Loading default Adult dataset...")
         from modules.data_loader import load_adult_dataset, encode_features
@@ -71,9 +68,7 @@ class FairAIFramework:
         self.X_tr = sc.fit_transform(self.X_tr)
         self.X_te = sc.transform(self.X_te)
 
-    # ==========================================
-    # 2. EVALUATION & STORAGE ENGINE
-    # ==========================================
+    # evaluate
     def _evaluate_and_store(self, model, model_name, y_pred, display_name):
         # Calculate accuracy/performance
         perf = evaluate_model(self.y_te, y_pred)
@@ -94,7 +89,6 @@ class FairAIFramework:
         print(f"   [{display_name}] Accuracy: {perf['accuracy']:.4f} | Fairness Score: {fairness.get('disparate_impact', 0):.4f}")
 
     def generate_report(self):
-        # Force the absolute path to the outputs folder
         base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
         out_dir = os.path.join(base_dir, "outputs")
         os.makedirs(out_dir, exist_ok=True)
@@ -110,7 +104,7 @@ class FairAIFramework:
             json.dump(report, f, indent=2, default=str)
             
         try:
-            # Pass the absolute path to the visualizer
+            # pass visualizer path
             self.viz.plot_all(self.results, out_dir=out_dir)
             print(f"[Framework] Visualizations successfully saved to {out_dir}")
         except Exception as e:
@@ -118,9 +112,7 @@ class FairAIFramework:
             
         return report
 
-    # ==========================================
-    # 3. AI TRAINING & MITIGATION PIPELINE
-    # ==========================================
+    # training models
     def train_biased_model(self):
         print("[Framework] Training Standard Baseline (Biased)...")
         model = train_baseline(self.X_tr, self.y_tr)
@@ -148,15 +140,12 @@ class FairAIFramework:
         except Exception as e:
             print(f"   [Skipped] Adversarial: {e}")
 
-    # ==========================================
-    # 4. EXECUTION TRIGGER
-    # ==========================================
+    # main()
     def run(self):
         print("\n" + "=" * 60)
         print("  FairMind AI: Multi-Model Evaluation — Starting...")
         print("=" * 60)
 
-        # Safety check: load data only if not uploaded dynamically via UI
         if not hasattr(self, 'X_tr'):
             self.load_data()
 
@@ -164,7 +153,7 @@ class FairAIFramework:
         self.train_additional_baselines()   
         self.apply_mitigation()           
 
-        print("[Framework] Deploying the AI Arbiter Pipeline (AI Correcting AI)...")
+        print("[Framework] Deploying the AI Arbiter Pipeline ")
         m_arbiter = train_ai_arbiter(self.X_tr, self.y_tr, self.s_tr)
         self._evaluate_and_store(m_arbiter, "ai_arbiter_pipeline", m_arbiter.predict(self.X_te), "AI Arbiter")
         
