@@ -4,18 +4,15 @@ import os
 import pandas as pd
 import glob
 
-# 1. Page Config MUST be the absolute first Streamlit command
+
 st.set_page_config(page_title="FairMind AI Dashboard", layout="wide")
 
-# 2. System Path and Imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from framework.fair_ai_framework import FairAIFramework
 
-# 3. Main UI Headers
 st.title("FairMind AI: Universal Bias Auditor")
 st.markdown("_Advanced Multi-Agent Fairness Evaluation & Auto-Mitigation Framework_")
 
-# 4. Sidebar Controls
 with st.sidebar:
     st.header("Dataset Configuration")
     data_source = st.radio("Select Data Source:", ["Default (Adult Income)", "Upload Custom CSV"])
@@ -31,7 +28,7 @@ with st.sidebar:
     st.markdown("---")
     run_btn = st.button("▶ Run Full AI Analysis", type="primary", use_container_width=True)
 
-# 5. Dynamic File Processing & UI
+# uploaded file processing
 custom_target = None
 custom_sensitive = None
 temp_df = None
@@ -58,20 +55,19 @@ if data_source == "Upload Custom CSV" and uploaded_file is not None:
     with col2:
         custom_sensitive = st.selectbox("Select Sensitive Column (Demographics)", temp_df.columns)
 
-# 6. Execution Logic
+# run
 if run_btn:
     if data_source == "Upload Custom CSV" and uploaded_file is None:
         st.error("Please upload a CSV file before running the analysis.")
     else:
         with st.spinner(f"Initializing Framework & Deploying Models..."):
             
-            # Route A: Custom CSV Execution
+            # uploaded csv
             if data_source == "Upload Custom CSV":
                 fw = FairAIFramework(sensitive_attr=custom_sensitive)
-                # Pass a pristine copy of our dataframe so we don't need to read the file again
                 fw.load_data_dynamically(temp_df.copy(), custom_target, custom_sensitive)
             
-            # Route B: Default Adult Dataset Execution
+            # default
             else:
                 fw = FairAIFramework(sensitive_attr=default_sensitive_attr)
             
@@ -80,7 +76,7 @@ if run_btn:
             
         st.success("Analysis Complete!")
         
-        # --- Rendering the Results Table ---
+        # result table
         st.subheader("Model Performance & Fairness Comparison")
         rows = []
         for name, r in fw.results.items():
@@ -91,10 +87,9 @@ if run_btn:
             rows.append(row)
         st.table(pd.DataFrame(rows))
 
-        # --- Rendering the Graphs ---
+        # graphs
         st.subheader("The Fairness-Accuracy Trade-off")
         
-        # Force Streamlit to use strict absolute paths
         base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
         outputs_dir = os.path.join(base_dir, "outputs")
         tradeoff_path = os.path.join(outputs_dir, "accuracy_vs_fairness.png")
